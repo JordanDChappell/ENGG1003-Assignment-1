@@ -28,5 +28,10 @@
 int ReadFile(char *inputFileName, int mode, char **inputText, char **key);
 int WriteFile(char *outputFileName, char *outputText, char *key);
 
+/* CaesarCipher */
+int CaesarEncrypt(char *plaintext, int key, char **ciphertext);
+int CaesarDecrypt(char *ciphertext, int key, char **plaintext);
+int CaesarCrack(char *ciphertext, char **plaintext);
+
 
 #endif

@@ -34,6 +34,7 @@ int ReadFile(char *inputFileName, int mode, char **inputText, char **key) {
 		//mode = 0: expects text and key in the file, encryption and decryption
 		case 0:
 		case 1: ;
+				
 				*inputText = malloc(MAX_LINE);							//allocate enough memory for the text line
 				if (fgets(*inputText, MAX_LINE, filePtr) == NULL) {		//read the first line in the file, check that some data was read
 					printf("ERROR: reading plain/ciphertext line from %s, check file contents.\n", inputFileName);
@@ -46,7 +47,7 @@ int ReadFile(char *inputFileName, int mode, char **inputText, char **key) {
 					return -1;
 				}  
 				//test that keylength matches expected input
-				if (strlen(*key) != 1 && strlen(*key) != 26) {
+				if (strlen(*key) > 2 && strlen(*key) != 26) {
 					printf("ERROR: unexpected key length in %s, check file contents.\n", inputFileName);
 					return -1;
 				}
@@ -66,7 +67,7 @@ int ReadFile(char *inputFileName, int mode, char **inputText, char **key) {
 }
 
 /*
-* Precondition: requires a pointer to a filename
+* Precondition: requires a pointer to a filename, a string of output and a key string
 * Postcondition:
 */
 int WriteFile(char *outputFileName, char *outputText, char *key) {
@@ -77,6 +78,14 @@ int WriteFile(char *outputFileName, char *outputText, char *key) {
 		return -1;
 	}
 	if (fwrite(outputText, strlen(outputText), 1, filePtr) == 0) {	//write the outputText to the file, check that the data is written correctly
+		printf("\tERROR: Writing output file has failed\n");
+		return -1;
+	} 
+	if (fwrite("\n", 1, 1, filePtr) == 0) {
+		printf("\tERROR: Writing output file has failed\n");
+		return -1;
+	}
+	if (fwrite(key, strlen(key), 1, filePtr) == 0) {				//write the key to the file, check that the data is written correctly
 		printf("\tERROR: Writing output file has failed\n");
 		return -1;
 	} 
