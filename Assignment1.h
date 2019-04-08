@@ -33,5 +33,10 @@ int CaesarEncrypt(char *plaintext, int key, char **ciphertext);
 int CaesarDecrypt(char *ciphertext, int key, char **plaintext);
 int CaesarCrack(char *ciphertext, char **plaintext);
 
+/* SubCipher */
+int SubEncrypt(char *plaintext, char *key, char **ciphertext);
+int SubDecrypt(char *ciphertext, char *key, char **plaintext);
+int SubCrack(char *ciphertext, char **plaintext);
+
 
 #endif

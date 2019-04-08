@@ -16,41 +16,105 @@
 *		-> argv[2]: filename, the input filename which has the required information.
 */
 int main(int argc, char *argv[]) {	
-	if (argc != 3) {
-		printf("ERROR: unexpected command line arguments.");
+	/* Sanity check, make sure user has entered 2 command line args (3 = 2 + run command) */
+	if (argc != 5) {
+		printf("ERROR: unexpected command line arguments, expected <cipher> <mode> <(input).txt> <(output).txt>.");
 		return -1;
 	}
 
-	char *inputFileName = argv[1];		//the first argument to command line
-	char *outputFileName = argv[2];		//the second argument to command line
-
-	char *plaintext;					//holds the text that is read from the inputFile
-	char *ciphertext;
+	/* Variable initialization */
+	char *cipherString = argv[1];		//first argument is the cipher type
+	char *modeString = argv[2];			//second argument is mode
+	char *inputFileName = argv[3];		//the third argument to command line
+	char *outputFileName = argv[4];		//the fourth argument to command line
+	char *inputText;					//holds the text that is read from the inputFile
+	char *outputText;					//holds message to output
 	char *key;							//holds the key that is read from the inputFile
+	int cipher;
+	int mode;
 
-	if (ReadFile(inputFileName, 0, &plaintext, &key) != 0) {
+	/* Sanity checks for cipher type command line argument */
+	if (strcmp(cipherString, "substitution") == 0) {
+		cipher = 1;
+	} else if (strcmp(cipherString, "caesar") == 0) {
+		cipher = 0;
+	} else {
+		printf("Unexpected cipher argument, expected caesar/substitution, recieved %s\n", cipherString);
+	}
+	
+	/* Sanity checks for mode command line argument */
+	if (strcmp(modeString, "encrypt") == 0) {
+		mode = ENCRYPT;
+	} else if (strcmp(modeString, "decrypt") == 0) {
+		mode = DECRYPT;
+	} else if (strcmp(modeString, "crack") == 0) {
+		mode = CRACK;
+	} else {
+		printf("Unexpected mode argument, expected encrypt/decrypt/crack, recieved %s\n", modeString);
 		return -1;
 	}
 
-	printf("Text in file (mode 0/1): %s\n", plaintext);
-	printf("Key in file: %s\n", key);
-
-	printf("CaesarCipher test:\n");
-	if (CaesarEncrypt(plaintext, (int) *key - 48, &ciphertext)) {
-		return -1;
-	} 
-	printf("%s encrypted with k=1 -> %s\n", plaintext, ciphertext);
-	if (CaesarDecrypt(ciphertext, (int) *key - 48, &plaintext)) {
-		return -1;
-	}
-	printf("%s decypted with k=1 -> %s\n", ciphertext, plaintext);
-
-	if (WriteFile(outputFileName, ciphertext, key) != 0) {
+	/* Main method body - do something here */
+	if (ReadFile(inputFileName, cipher, &inputText, &key) != 0) {
 		return -1;
 	}
 
-	free(plaintext);
-	free(ciphertext);
+	switch (cipher) {
+		/* CIPHER = CAESAR/ROTATIONAL */
+		case 0:
+				if (mode == 0) {
+					printf("Caesar Cipher: (Encrypt)\n");
+					if (CaesarEncrypt(inputText, atoi(key), &outputText) != 0) {
+						return -1;
+					}
+					WriteFile(outputFileName, outputText, key);
+					printf("Message: %5s\nKey: %5s\nEncrypted Message: %5s\n", inputText, key, outputText);
+				} else if (mode == 1) {
+					printf("Caesar Cipher: (Decrypt)\n");
+					if (CaesarDecrypt(inputText, atoi(key), &outputText) != 0) {
+						return -1;
+					}
+					WriteFile(outputFileName, outputText, key);
+					printf("Message: %5s\nKey: %5s\nDecrypted Message: %5s\n", inputText, key, outputText);
+				} else if (mode == 2) {
+					printf("Not implemented\n");
+				} else {
+					printf("ERROR: unexpected value for MODE variable, exiting application\n");
+					return -1;
+				}
+				break;
+		/* CIPHER = Substitution */
+		case 1: 
+				if (mode == 0) {
+					printf("Substitution Cipher: (Encrypt)\n");
+					if (SubEncrypt(inputText, key, &outputText) != 0) {
+						return -1;
+					}
+					WriteFile(outputFileName, outputText, key);
+					printf("Message: %5s\nKey: %5s\nEncrypted Message: %5s\n", inputText, key, outputText);
+				} else if (mode == 1) {
+					printf("Substitution Cipher: (Decrypt)\n");
+					if (SubDecrypt(inputText, key, &outputText) != 0) {
+						return -1;
+					}
+					WriteFile(outputFileName, outputText, key);
+					printf("Message: %5s\nKey: %5s\nDecrypted Message: %5s\n", inputText, key, outputText);
+				} else if (mode == 2) {
+					printf("Not implemented\n");
+				} else {
+					printf("ERROR: unexpected value for MODE variable, exiting application\n");
+					return -1;
+				}
+				break;
+
+		default:
+				printf("ERROR: unexpected value for CIPHER variable, exiting application\n"); 
+				return -1;
+				break;
+	}
+
+	free(inputText);					//free allocated memory at end of program
+	free(outputText);
 	free(key);
 
 	return 0;
