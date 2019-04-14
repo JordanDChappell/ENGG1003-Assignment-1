@@ -30,13 +30,13 @@ int main(int argc, char *argv[]) {
 	char *inputText;					//holds the text that is read from the inputFile
 	char *outputText;					//holds message to output
 	char *key;							//holds the key that is read from the inputFile
-	int cipher;
-	int mode;
+	int cipher;							//flag to determine which cipher will be used
+	int mode;							//flag to determine which mode will be run
 
 	/* Sanity checks for cipher type command line argument */
 	if (strcmp(cipherString, "substitution") == 0) {
 		cipher = 1;
-	} else if (strcmp(cipherString, "caesar") == 0) {
+	} else if (strcmp(cipherString, "caesar") == 0 || strcmp(cipherString, "rotation") == 0) {
 		cipher = 0;
 	} else {
 		printf("Unexpected cipher argument, expected caesar/substitution, recieved %s\n", cipherString);
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Main method body - do something here */
-	if (ReadFile(inputFileName, cipher, &inputText, &key) != 0) {
+	if (ReadFile(inputFileName, cipher, &inputText, &key) != 0) {		//error checking for ReadFile function, on success should be 0
 		return -1;
 	}
 
@@ -68,16 +68,19 @@ int main(int argc, char *argv[]) {
 						return -1;
 					}
 					WriteFile(outputFileName, outputText, key);
-					printf("Message: %5s\nKey: %5s\nEncrypted Message: %5s\n", inputText, key, outputText);
+					printf("Key: %5s\nMessage:\n%s\n\nEncrypted Message:\n%s\n", key, inputText, outputText);
 				} else if (mode == 1) {
 					printf("Caesar Cipher: (Decrypt)\n");
 					if (CaesarDecrypt(inputText, atoi(key), &outputText) != 0) {
 						return -1;
 					}
 					WriteFile(outputFileName, outputText, key);
-					printf("Message: %5s\nKey: %5s\nDecrypted Message: %5s\n", inputText, key, outputText);
+					printf("Key: %5s\nMessage:\n%s\n\nDecrypted Message:\n%s\n", key, inputText, outputText);
 				} else if (mode == 2) {
-					printf("Not implemented\n");
+					if (CaesarCrack(inputText, &outputText) != 0) {
+						return -1;
+					}
+					WriteFile(outputFileName, outputText, key);
 				} else {
 					printf("ERROR: unexpected value for MODE variable, exiting application\n");
 					return -1;
@@ -91,16 +94,19 @@ int main(int argc, char *argv[]) {
 						return -1;
 					}
 					WriteFile(outputFileName, outputText, key);
-					printf("Message: %5s\nKey: %5s\nEncrypted Message: %5s\n", inputText, key, outputText);
+					printf("Key: %5s\nMessage:\n%s\n\nEncrypted Message:\n%s\n", key, inputText, outputText);
 				} else if (mode == 1) {
 					printf("Substitution Cipher: (Decrypt)\n");
 					if (SubDecrypt(inputText, key, &outputText) != 0) {
 						return -1;
 					}
 					WriteFile(outputFileName, outputText, key);
-					printf("Message: %5s\nKey: %5s\nDecrypted Message: %5s\n", inputText, key, outputText);
+					printf("Key: %5s\nMessage:\n%s\n\nDecrypted Message:\n%s\n", key, inputText, outputText);
 				} else if (mode == 2) {
-					printf("Not implemented\n");
+					if (SubCrack(inputText, &outputText) != 0) {
+						return -1;
+					}
+					WriteFile(outputFileName, outputText, key);
 				} else {
 					printf("ERROR: unexpected value for MODE variable, exiting application\n");
 					return -1;
@@ -112,8 +118,9 @@ int main(int argc, char *argv[]) {
 				return -1;
 				break;
 	}
-
-	free(inputText);					//free allocated memory at end of program
+	
+	/* Free allocated memory before end of program */
+	free(inputText);
 	free(outputText);
 	free(key);
 

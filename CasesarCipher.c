@@ -22,13 +22,13 @@ int CaesarEncrypt(char *plaintext, int key, char **ciphertext) {
 	for (int i = 0; i < strlen(plaintext); i++) {
 		if (plaintext[i] >= 65 && plaintext[i] <= 90) {				//in the UPPERCASE ASCII range
 			char letter = plaintext[i] - 65 + key;					//the current letter being encrypted, used to test for pos or neg value
-			if (letter < 0) {
-				letter += 26;										//correct the negative value		
+			if (letter < 0) {										//after encryption the ascii value has become negative
+				letter += 26;										//correct the negative value by adding 26	
 			}		
-			(*ciphertext)[i] = letter % 26;
+			(*ciphertext)[i] = letter % 26;							
 			(*ciphertext)[i] += 65;									// -65 moves the ascii into the 0 - 26 range, need to correct this by adding 65
 		} else if (plaintext[i] >= 97 && plaintext[i] <= 122) {		//in the lowercase ASCII range
-			char letter = plaintext[i] - 32 - 65 - key;			//the current letter being decrypted, used to test for pos or neg value
+			char letter = plaintext[i] - 32 - 65 + key;				//the current letter being encrypted, used to test for pos or neg value
 			if (letter < 0) {
 				letter += 26;										//correct the negative value		
 			}		
@@ -80,5 +80,6 @@ int CaesarDecrypt(char *ciphertext, int key, char **plaintext) {
 * Postcondition: decrypts the given ciphertext, no key (crack/break), allocates memory and points to the plaintext
 */
 int CaesarCrack(char *ciphertext, char **plaintext) {
-
+	printf("NOT IMPLEMENTED\n");
+	return -1;
 }

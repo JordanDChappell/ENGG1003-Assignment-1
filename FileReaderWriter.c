@@ -9,8 +9,8 @@
 
 #include "Assignment1.h"
 
-#define CAESAR_KEY 3
-#define SUB_KEY 27
+#define CAESAR_KEY 2
+#define SUB_KEY 26
 
 /*
 * Precondition: -> some arguments passed by pointer (mutation of the value is now possible).
@@ -23,52 +23,64 @@
 *				 -> returns 0 on success, -1 on a failure.
 */
 int ReadFile(char *inputFileName, int mode, char **inputText, char **key) {
+	char buf[MAX_LINE];								//buffer to read lines into
+	char header[4];									//used to hold the KEY: portion of the file header
 	FILE *filePtr;									//initialize a pointer to a file
 	filePtr = fopen(inputFileName, "r");			//open the file passed as an argument to this function in read only mode
 	if (filePtr == NULL) {							//check that the file opened correctly
 		printf("ERROR: Opening file \"%s\".", inputFileName);
 		return -1;
 	}
-	/* Read the message to be encrypted or decrypted in the first line of the file */
-	*inputText = malloc(MAX_LINE);
-	if (fgets(*inputText, MAX_LINE, filePtr) == NULL) {		//read the first line in the file, check that some data was read
-		printf("ERROR: reading plaintext/ciphertext line from %s, check file contents.\n", inputFileName);
-		return -1;											//return a -1 to indicate a failure
+
+	/* Read the file header, should contain KEY: followed by the key, only read on ENCRYPT and DECRYPT operations */
+	if (mode != 2) {
+		if (fgets(buf, MAX_LINE, filePtr) == NULL) {
+			printf("ERROR: reading key header in %s\n", inputFileName);
+		}
 	}
-	(*inputText)[strlen(*inputText) - 1] = '\0';			//replace the \n at the end of string with \0
+
 	/* Cover cases for different modes of operation */
 	switch (mode) {
-		/* Mode = 0: expects text and key in the file, key should be an integer between (0, 25) */
+		/* Mode = 0: key should be an integer between (0, 25) */
 		case 0:	;
-				*key = malloc(CAESAR_KEY);						//allocate enough memory for the key line
-				if (fgets(*key, CAESAR_KEY, filePtr) == NULL) {	//read the next line, check that fgets read some data
-					printf("ERROR: reading key line from %s, check file contents.\n", inputFileName);
-					return -1;
-				}  
-				if (strlen(*key) > 2) {							//sanity check for a caesar cipher key, should be < 2 in length
+				*key = malloc(CAESAR_KEY + 1);						//allocate enough memory for the key line
+				sscanf(buf, "%s %s", header, *key);					//split the keyHeader string into the header and key portions
+				if (strcmp(header, "KEY:")) {						//test that header == "KEY:"
+					printf("ERROR: reading key header from file %s, expected KEY:..., recieved %s...\n", inputFileName, header);
+				}
+				if (strlen(*key) > 2) {								//sanity check for a caesar cipher key, should be < 2 in length
 					printf("strlen(key): %d\n", strlen(*key));
 					printf("ERROR: during Caesar cipher read, unexpected key in %s, expected number (0, 25), recieved %s.\n", inputFileName, *key);
 					return -1;
 				}
 				break;
-		/* Mode = 1: expects text and key in file, key should be a string of unique alphabet characters, must include all letters */
+		/* Mode = 1: key should be a string of unique alphabet characters, must include all letters */
 		case 1: ;
-				*key = malloc(SUB_KEY);							//allocate 27 bytes of memory, 26 letters in key + 1 for null terminal
-				if (fgets(*key, SUB_KEY, filePtr) == NULL) {	//read the next line, check that fgets read some data
-					printf("ERROR: reading key line from %s, check file contents.\n", inputFileName);
-					return -1;
-				}  
-				if (strlen(*key) != 26) {						//sanity check for sub cipher key, should be exactly 26 characters
+				*key = malloc(SUB_KEY + 1);							//allocate 27 bytes of memory, 26 letters in key + 1 for null terminal
+				sscanf(buf, "%s %s", header, *key);
+				if (strcmp(header, "KEY:")) {						//test that header == "KEY:"
+					printf("ERROR: reading key header from file %s, expected KEY:..., recieved %s...\n", inputFileName, header);
+				}
+				printf("%d\n", strlen(*key));
+				if (strlen(*key) != 26) {							//sanity check for sub cipher key, should be exactly 26 characters
 					printf("ERROR: During Substitution cipher read, unexpected key in %s, expected alphabet string, recieved %s.\n", inputFileName, *key);
 					return -1;
 				}
-		/* Mode = 2, do nothing, already read the message in the file */
+		/* Mode = 2, do nothing, no key to allocate */
 		case 2: break;
 		/* Default, error handling, print message to error, return -1 to program */
 		default: printf("ERROR: unexpected input to ReadFile(), expected mode: [0,2], recieved: %d", mode);
 				 return -1;
 				 break;
 	}
+	int currentPos = ftell(filePtr);							//save the current position of the cursor in filePtr
+	fseek(filePtr, 0L, SEEK_END);								//move to the end of the file
+  	int remainingSize = ftell(filePtr);							//store the end byte offset as the size of file
+  	fseek(filePtr, currentPos, SEEK_SET); 						//move back to the line after key header
+	/* Read the message to be encrypted or decrypted in the rest of the file */
+	*inputText = malloc(remainingSize);							//allocate memory for message contents
+	fread(*inputText, remainingSize, 1, filePtr);				//read all contents of file at once
+	(*inputText)[strlen(*inputText) - 1] = '\0';				//replace the \n at the end of string with \0
 
 	return 0;
 }
@@ -84,15 +96,8 @@ int WriteFile(char *outputFileName, char *outputText, char *key) {
 		printf("ERROR: Opening file \"%s\".", outputFileName);
 		return -1;
 	}
+	fprintf(filePtr, "%s%s\n", "KEY: ", key);
 	if (fwrite(outputText, strlen(outputText), 1, filePtr) == 0) {	//write the outputText to the file, check that the data is written correctly
-		printf("\tERROR: Writing output file has failed\n");
-		return -1;
-	} 
-	if (fwrite("\n", 1, 1, filePtr) == 0) {							//write a newline to the file
-		printf("\tERROR: Writing output file has failed\n");
-		return -1;
-	}
-	if (fwrite(key, strlen(key), 1, filePtr) == 0) {				//write the key to the file, check that the data is written correctly
 		printf("\tERROR: Writing output file has failed\n");
 		return -1;
 	} 
