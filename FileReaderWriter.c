@@ -22,7 +22,7 @@
 *				 -> key points to a single digit for caesar and a string for substitution.
 *				 -> returns 0 on success, -1 on a failure.
 */
-int ReadFile(char *inputFileName, int mode, char **inputText, char **key) {
+int ReadFile(char *inputFileName, int mode, int cipher, char **inputText, char **key) {
 	char buf[MAX_LINE];								//buffer to read lines into
 	char header[4];									//used to hold the KEY: portion of the file header
 	FILE *filePtr;									//initialize a pointer to a file
@@ -36,43 +36,43 @@ int ReadFile(char *inputFileName, int mode, char **inputText, char **key) {
 	if (mode != 2) {
 		if (fgets(buf, MAX_LINE, filePtr) == NULL) {
 			printf("ERROR: reading key header in %s\n", inputFileName);
+			return -1;
 		}
-	}
-
-	/* Cover cases for different modes of operation */
-	switch (mode) {
-		/* Mode = 0: key should be an integer between (0, 25) */
-		case 0:	;
-				*key = malloc(CAESAR_KEY + 1);						//allocate enough memory for the key line
-				sscanf(buf, "%s %s", header, *key);					//split the keyHeader string into the header and key portions
-				if (strcmp(header, "KEY:")) {						//test that header == "KEY:"
-					printf("ERROR: reading key header from file %s, expected KEY:..., recieved %s...\n", inputFileName, header);
-				}
-				if (strlen(*key) > 2) {								//sanity check for a caesar cipher key, should be < 2 in length
-					printf("strlen(key): %d\n", strlen(*key));
-					printf("ERROR: during Caesar cipher read, unexpected key in %s, expected number (0, 25), recieved %s.\n", inputFileName, *key);
-					return -1;
-				}
-				break;
-		/* Mode = 1: key should be a string of unique alphabet characters, must include all letters */
-		case 1: ;
-				*key = malloc(SUB_KEY + 1);							//allocate 27 bytes of memory, 26 letters in key + 1 for null terminal
-				sscanf(buf, "%s %s", header, *key);
-				if (strcmp(header, "KEY:")) {						//test that header == "KEY:"
-					printf("ERROR: reading key header from file %s, expected KEY:..., recieved %s...\n", inputFileName, header);
-				}
-				printf("%d\n", strlen(*key));
-				if (strlen(*key) != 26) {							//sanity check for sub cipher key, should be exactly 26 characters
-					printf("ERROR: During Substitution cipher read, unexpected key in %s, expected alphabet string, recieved %s.\n", inputFileName, *key);
-					return -1;
-				}
-		/* Mode = 2, do nothing, no key to allocate */
-		case 2: break;
-		/* Default, error handling, print message to error, return -1 to program */
-		default: printf("ERROR: unexpected input to ReadFile(), expected mode: [0,2], recieved: %d", mode);
-				 return -1;
-				 break;
-	}
+		/* Cover cases for different modes of operation */
+		switch (cipher) {
+			/* Mode = 0: key should be an integer between (0, 25) */
+			case 0:	;
+					*key = malloc(CAESAR_KEY + 1);						//allocate enough memory for the key line
+					sscanf(buf, "%s %s", header, *key);					//split the keyHeader string into the header and key portions
+					if (strcmp(header, "KEY:")) {						//test that header == "KEY:"
+						printf("ERROR: reading key header from file %s, expected KEY:..., recieved %s...\n", inputFileName, header);
+					}
+					if (strlen(*key) > 2) {								//sanity check for a caesar cipher key, should be < 2 in length
+						printf("strlen(key): %d\n", strlen(*key));
+						printf("ERROR: during Caesar cipher read, unexpected key in %s, expected number (0, 25), recieved %s.\n", inputFileName, *key);
+						return -1;
+					}
+					break;
+			/* Mode = 1: key should be a string of unique alphabet characters, must include all letters */
+			case 1: ;
+					*key = malloc(SUB_KEY + 1);							//allocate 27 bytes of memory, 26 letters in key + 1 for null terminal
+					sscanf(buf, "%s %s", header, *key);
+					if (strcmp(header, "KEY:")) {						//test that header == "KEY:"
+						printf("ERROR: reading key header from file %s, expected KEY:..., recieved %s...\n", inputFileName, header);
+					}
+					if (strlen(*key) != 26) {							//sanity check for sub cipher key, should be exactly 26 characters
+						printf("ERROR: During Substitution cipher read, unexpected key in %s, expected alphabet string, recieved %s.\n", inputFileName, *key);
+						return -1;
+					}
+					break;
+			/* Default, error handling, print message to error, return -1 to program */
+			default: printf("ERROR: unexpected input to ReadFile(), expected cipher: [0,1], recieved: %d", cipher);
+					 return -1;
+					 break;
+		}
+	} 
+	
+	/* Calculate the length of the message to be read */
 	int currentPos = ftell(filePtr);							//save the current position of the cursor in filePtr
 	fseek(filePtr, 0L, SEEK_END);								//move to the end of the file
   	int remainingSize = ftell(filePtr);							//store the end byte offset as the size of file

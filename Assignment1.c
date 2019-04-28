@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Main method body - do something here */
-	if (ReadFile(inputFileName, cipher, &inputText, &key) != 0) {		//error checking for ReadFile function, on success should be 0
+	if (ReadFile(inputFileName, mode, cipher, &inputText, &key) != 0) {		//error checking for ReadFile function, on success should be 0
 		return -1;
 	}
 
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 					WriteFile(outputFileName, outputText, key);
 					printf("Key: %5s\nMessage:\n%s\n\nDecrypted Message:\n%s\n", key, inputText, outputText);
 				} else if (mode == 2) {
-					if (CaesarCrack(inputText, &outputText) != 0) {
+					if (CaesarCrack(inputText, &outputText, &key) != 0) {
 						return -1;
 					}
 					WriteFile(outputFileName, outputText, key);
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
 					WriteFile(outputFileName, outputText, key);
 					printf("Key: %5s\nMessage:\n%s\n\nDecrypted Message:\n%s\n", key, inputText, outputText);
 				} else if (mode == 2) {
-					if (SubCrack(inputText, &outputText) != 0) {
+					if (SubCrack(inputText, &outputText, &key) != 0) {
 						return -1;
 					}
 					WriteFile(outputFileName, outputText, key);

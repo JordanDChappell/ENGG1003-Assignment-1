@@ -79,7 +79,50 @@ int CaesarDecrypt(char *ciphertext, int key, char **plaintext) {
 * Precondition: requires a string "ciphertext" to attempt decryption and a pointer to a string "plaintext"
 * Postcondition: decrypts the given ciphertext, no key (crack/break), allocates memory and points to the plaintext
 */
-int CaesarCrack(char *ciphertext, char **plaintext) {
-	printf("NOT IMPLEMENTED\n");
-	return -1;
+int CaesarCrack(char *ciphertext, char **plaintext, char **keystring) {
+	//local variable init
+	char alphabet[26] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";		//determine 0 - 26 index of an alphabet character
+	char highFreq[9] = "ETAOINSHR";							//the 9 highest occuring characters in english
+	char *message;											
+	char input[100];
+	int flag = 0;
+	int key = 0;
+
+	printf("Cracking...\n");
+	
+	/* Letter Frequency Analysis */
+	int *letterFreq = LetterFreqAnalysis(ciphertext);
+
+	/* Sort the arrays and test some key values */
+	BubbleSort(letterFreq, alphabet, 26);
+
+	/* Search keyspace using letter frequencies to crack message */
+	for (int i = 0; i < 26; i++) {								//loop over keyspace
+		if (flag == 1) {										//flag will break the outer loop, otherwise execution continues after message is found
+			break;
+		}
+		for (int j = 0; j < 9; j++) {							//loop over 8 highest frequency letters
+			key = (alphabet[i] - 65) - (highFreq[j] - 65);		//find the difference between encrypted high freq and plain high freq letter
+			if (key < 0) {										//correct a negative key value
+				key += 26;
+			}
+			CaesarDecrypt(ciphertext, key, &message);			//test decryption with the found key
+			printf("\nMessage:\n%s\n", message);				//display message to user for confirmation of english message
+			printf("\nIs this message correct? (y/n): ");
+			fgets(input, 100, stdin);							//take user input regarding correctness of cracked message
+			if (strlen(input) == 2 && input[0] == 'y') {
+				printf("\nCracked Key: %d\n", key);
+				int length = snprintf(NULL, 0, "%d", key);		//determine the number of digits in the key
+				*keystring = malloc(length + 1);				//allocate memory for the keystring
+				snprintf(*keystring, length + 1, "%d", key);	//convert integer key to string
+				*plaintext = message;							//point plaintext to message
+				flag = 1;										//flag indicates finish of execution
+				break;											//break from inner for loop (over int j)
+			}
+			free(message);										//free memory allocated at each loop instance
+		}
+		
+	}
+	return 0;
 }
+

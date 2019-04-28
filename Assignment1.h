@@ -25,18 +25,21 @@
 /* ------ FUNCTION PROTOTYPES ------ */
 
 /* FileReaderWriter */
-int ReadFile(char *inputFileName, int mode, char **inputText, char **key);
+int ReadFile(char *inputFileName, int mode, int cipher, char **inputText, char **key);
 int WriteFile(char *outputFileName, char *outputText, char *key);
 
 /* CaesarCipher */
 int CaesarEncrypt(char *plaintext, int key, char **ciphertext);
 int CaesarDecrypt(char *ciphertext, int key, char **plaintext);
-int CaesarCrack(char *ciphertext, char **plaintext);
+int CaesarCrack(char *ciphertext, char **plaintext, char **keystring);
 
 /* SubCipher */
 int SubEncrypt(char *plaintext, char *key, char **ciphertext);
 int SubDecrypt(char *ciphertext, char *key, char **plaintext);
-int SubCrack(char *ciphertext, char **plaintext);
+int SubCrack(char *ciphertext, char **plaintext, char **key);
 
+/* Cracking Tools */
+int * LetterFreqAnalysis(char *ciphertext);
+void BubbleSort(int *freqArr, char *letterArr, int n);
 
 #endif

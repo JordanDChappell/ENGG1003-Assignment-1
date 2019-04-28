@@ -11,7 +11,6 @@
 
 int TestUniqueChars(char *string);
 int GetIndexOf(char *string, char c);
-int LetterDistAnalysis(char *string);
 
 char alphabet[26] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -67,8 +66,53 @@ int SubDecrypt(char *ciphertext, char *key, char **plaintext) {
 * Precondition: requires a string "ciphertext" to decrypt, and a pointer to a string to store the plaintext in
 * Postcondition: "plaintext" should now point to allocated memory containing the decrypted message, returns 0 on a success, else -1
 */
-int SubCrack(char *ciphertext, char **plaintext) {
-	printf("NOT IMPLEMENTED\n");
+int SubCrack(char *ciphertext, char **plaintext, char **key) {
+	char freqAlphabet[26] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";		//alphabet array allows 0 - 26 indexing of letters
+	char highFreq[26] = "ETAOINSHRDLCUMWFGYPBVKJXQZ";			//frequency of letter in alphabet
+	char subLetter;												//hold the current letter substitution decision
+	int whileFlag = 1;
+	char input[100];
+	char *message = malloc(strlen(ciphertext) + 1);
+	strcpy(message, ciphertext);
+
+	/* Analyse Letter Frequencies, an array of integer counts of letters */
+	int *letterFreq = LetterFreqAnalysis(ciphertext);
+
+	/* Sort the frequency array as well as the alphabet */
+	BubbleSort(letterFreq, freqAlphabet, 26);
+
+	/* Loop and make decisions about letter substitution */
+	printf("Cracking...\n\n");
+
+	while (whileFlag) {
+		printf("Message:\n%s\n", message);
+		printf("\nCurrent possible letter frequency distribution:\n\n");
+		printf("Current\tPossible\n");
+		for (int i = 0; i < sizeof(highFreq); i++) {
+			printf("%c:\t%c \n", freqAlphabet[i], highFreq[i], i + 1);
+		}
+		printf("Exit (0)\n");
+		printf("Restart (1)\n\n");
+
+		printf("Which letter would you like to substitute? ");
+		fgets(input, 100, stdin);
+		if (atoi(input) == 0) {
+			// printf("Resetting original ciphertext message...\n");
+			// strcpy(message, ciphertext);
+			whileFlag = 0;
+		} else {
+			int index = atoi(input) - 1;
+			for (int i = 0; i < strlen(message); i++) {
+				if (message[i] == freqAlphabet[index]) {
+					message[i] = highFreq[index];
+				}
+			}
+		}
+		
+	}
+
+	free(message);
+	
 	return -1;
 }
 
@@ -93,8 +137,10 @@ int TestUniqueChars(char *string) {
 */
 int GetIndexOf(char *string, char c) {
 	int index;							//declare integer to hold index of c
-	char *found;						//found is a pointer used to calculate the index of c in string
-	found = strchr(string, c);			//strchr() returns a pointer to first occurence of c in string
-	index = (int)(found - string);		//index is determined by subracting the memory address of string from found
-	return index;						//if string = ABC, pointers to chars are allocated in memory contiguously, B - A = index of B
+	for (index = 0; index < strlen(string); index++) {
+		if (string[index] == c) {
+			return index;
+		}
+	}
+	return index;
 }
