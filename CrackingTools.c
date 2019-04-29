@@ -37,11 +37,11 @@ void BubbleSort(int *freqArr, char *letterArr, int n) {
 	for (int i = 0; i < (n - 1); i++) {    
 		// Last i elements are already in place     
 		for (int j = 0; j < n - i - 1; j++) {  
-			if (freqArr[j] < freqArr[j + 1]) {
-				int temp = freqArr[j];
-				freqArr[j] = freqArr[j + 1];
-				freqArr[j + 1] = temp;
-				char temp2 = letterArr[j];
+			if (freqArr[j] < freqArr[j + 1]) {		//comparison between current position and next position
+				int temp = freqArr[j];				//a temp value to swap the current indices
+				freqArr[j] = freqArr[j + 1];		//swap the current position and next pos
+				freqArr[j + 1] = temp;				//next pos is now temp (current pos)		
+				char temp2 = letterArr[j];			//repeat for the letter array
 				letterArr[j] = letterArr[j + 1];
 				letterArr[j + 1] = temp2;
 			}
